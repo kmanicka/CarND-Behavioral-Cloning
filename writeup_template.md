@@ -27,10 +27,13 @@ My project includes the following files:
 * modelV*.ipynb presents the various iterations of building and training the models.  modelV9.ipynb should be considered for the final submition.  
 * Multiple models weights were generated and tested. weights-7C.h5 containing a best trained model
 * A gif showing actual run using the best trained model. 
+
+
 ![Iteration 7c](https://github.com/kmanicka/CarND-Behavioral-Cloning/raw/master/iteration7c.gif)
 
 #### 2. Submission includes functional code
 Using the Udacity provided simulator and my drive.py file, the car can be driven autonomously around the track by executing 
+
 ```sh
 python drive.py weights-7C.h5
 ```
@@ -171,19 +174,65 @@ Used Left, Right Images and Horizontal flipping to reduce overfitting.
 
 #### 1. Solution Design Approach
 
-The overall strategy for deriving a model architecture was to ...
+I used an iterateve approach to come up with a model and get acceptable results. 
+To start with created a workable model which could be used with drive.py. Then slowly upgraded the model and the training set to improve the results. 
 
-My first step was to use a convolution neural network model similar to the ... I thought this model might be appropriate because ...
+Following are iterations that I used. 
 
-In order to gauge how well the model was working, I split my image and steering angle data into a training and validation set. I found that my first model had a low mean squared error on the training set but a high mean squared error on the validation set. This implied that the model was overfitting. 
-
-To combat the overfitting, I modified the model so that ...
-
-Then I ... 
-
-The final step was to run the simulator to see how well the car was driving around track one. There were a few spots where the vehicle fell off the track... to improve the driving behavior in these cases, I ....
-
-At the end of the process, the vehicle is able to drive autonomously around the track without leaving the road.
+-  Versions 1
+-- Setup a basic model with  appropriate input and output dimentions which can be used with drive.py
+- Versions 2
+-- Converted the model to to a Lenet Model updated for linear regression. 
+- Versions 3
+-- Normalized and cropped the imges. 
+- Versions 4
+-- Added Dropout in 3 layers with 0.25
+- Versions 5
+-- Some Code Cleanup. 
+- Versions 6
+-- Use Data Generator inspired by https://stanford.edu/~shervine/blog/keras-how-to-generate-data-on-the-fly.html  
+-- The training became slower after using the data generator as the imges were being read 1 by 1 and processed. 
+- Versions 7
+-- Try doing bulk read of images during Data Generator
+-- Exclude the left and right images
+-- Implement Validation Generator  (weights-7.hdf5)
+-- Shuffle is already being done by fit_generator, so remove functionality (weights-7A.hdf5)
+-- Trying the fit_generator parallel exectution to speed things up. (weights-7B.hdf5)
+-- Results : 
+-- Bulk read of images significantly improved the speed of training.
+-- Doing shuffel on on_epoch_end improved training results. Note fit_geneator also shuffles at batch level.
+-- Using Parallel Execution reduced the training time per epoc to 10s without any impact on the model / training. 
+-- With weights version 7C we are able to cross the sand railing.
+- Versions 8
+-- Data Augumentation do the reverse images, reverse 50% images in the batch. 
+- Version 8 A
+-- LeNet Arch conv32->conv64 -> dense32 -> dense8 no dropout, 40 epocs , 32 batch, 20 workers. 
+-- loss: 0.0013 - val_loss: 0.0093.. high variance. need regularization
+- Version 8 B
+-- Test with smaller dense layers 
+-- LeNet Arch conv32->conv64 -> dense16 -> dense4 no dropout (0.2), 40 epocs , 32 batch, 20 workers. 
+-- Not Converging
+- Version 8 C
+-- Same as 8A with Dropout (0.2) 
+-- LeNet Arch conv32->conv64 -> dense32 -> dense8 WITH dropout (0.2), 40 epocs , 32 batch, 20 workers. 
+-- Not COnverging
+- Version 8D
+-- Dropout 0.25 
+-- regularized but failed to cross the sandbar in sumulation. 
+- Version 8E
+-- Dropout of 0.5 in 1st dense layer
+-- The train and validation loss seem to converge. 
+- Version 8F
+-- remove the 2nd dense layer. 
+-- The train and validation loss seem to converge to 0.0106/0.0105. 
+- Version 8G
+-- use keras.optimizers.Adadelta(), loss: 0.0086 - val_loss: 0.0083
+-- testing in Demo, the car again crashed near the sand road area. 
+- Version 9
+-- Reduce 0 stearing data points
+-- Train generator will have Random Transformations and generated "defined number of batches"
+-- Validation Generator will generate all the validation samples in track 1
+-- Result: loss: 0.0089 - val_loss: 0.0036, car able to cross the sand but got stuck in right turn. 
 
 #### 2. Final Model Architecture
 
