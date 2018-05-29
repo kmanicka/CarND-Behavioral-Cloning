@@ -1,10 +1,5 @@
 # **Behavioral Cloning** 
 
-## Writeup Template
-
-### You can use this file as a template for your writeup if you want to submit it as a markdown file, but feel free to use some other method and submit a pdf if you prefer.
-
----
 
 **Behavioral Cloning Project**
 
@@ -46,65 +41,12 @@ The modelV9.ipynb file contains the code for training and saving the convolution
 
 #### 1. An appropriate model architecture has been employed
 
-Keras model used for this project
-
-```sh
-_________________________________________________________________
-Layer (type)                 Output Shape              Param #   
-=================================================================
-lambda_15 (Lambda)           (None, 160, 320, 3)       0         
-_________________________________________________________________
-cropping2d_15 (Cropping2D)   (None, 96, 320, 3)        0         
-_________________________________________________________________
-max_pooling2d_39 (MaxPooling (None, 48, 160, 3)        0         
-_________________________________________________________________
-conv2d_25 (Conv2D)           (None, 48, 160, 32)       2432      
-_________________________________________________________________
-activation_37 (Activation)   (None, 48, 160, 32)       0         
-_________________________________________________________________
-max_pooling2d_40 (MaxPooling (None, 24, 80, 32)        0         
-_________________________________________________________________
-conv2d_26 (Conv2D)           (None, 24, 80, 64)        51264     
-_________________________________________________________________
-activation_38 (Activation)   (None, 24, 80, 64)        0         
-_________________________________________________________________
-max_pooling2d_41 (MaxPooling (None, 12, 40, 64)        0         
-_________________________________________________________________
-dropout_32 (Dropout)         (None, 12, 40, 64)        0         
-_________________________________________________________________
-conv2d_27 (Conv2D)           (None, 12, 40, 128)       204928    
-_________________________________________________________________
-activation_39 (Activation)   (None, 12, 40, 128)       0         
-_________________________________________________________________
-max_pooling2d_42 (MaxPooling (None, 6, 20, 128)        0         
-_________________________________________________________________
-dropout_33 (Dropout)         (None, 6, 20, 128)        0         
-_________________________________________________________________
-flatten_13 (Flatten)         (None, 15360)             0         
-_________________________________________________________________
-dense_24 (Dense)             (None, 32)                491552    
-_________________________________________________________________
-activation_40 (Activation)   (None, 32)                0         
-_________________________________________________________________
-dropout_34 (Dropout)         (None, 32)                0         
-_________________________________________________________________
-dense_25 (Dense)             (None, 8)                 264       
-_________________________________________________________________
-activation_41 (Activation)   (None, 8)                 0         
-_________________________________________________________________
-dropout_35 (Dropout)         (None, 8)                 0         
-_________________________________________________________________
-dense_26 (Dense)             (None, 1)                 9         
-=================================================================
-Total params: 750,449
-Trainable params: 750,449
-Non-trainable params: 0
-_________________________________________________________________
-```
+The final model architecture is a modification of a LeNet with addition of  preprocessing and dropout layers and changes for linear regressions. 
 
 * First 2 layers are pre-processing layers used for normalizing and croping the images. 
 * Next we have 3 Covnets followed by Maxpooling. 
 * Then we have 3 Dense layers 
+* Dropout layers are used for regularization
 * we use Mean Squared Errors as the loss function 
 * Adaptive Learning Rate Optimizer is used for optimization. 
 
@@ -204,11 +146,63 @@ Validation Generator will generate all impages from Track 1 as validation sample
 
 #### 2. Final Model Architecture
 
-The final model architecture (model.py lines 18-24) consisted of a convolution neural network with the following layers and layer sizes ...
+  
 
-Here is a visualization of the architecture (note: visualizing the architecture is optional according to the project rubric)
+Following block shows the final architecture that was used. 
 
-![alt text][image1]
+```
+_________________________________________________________________
+Layer (type)                 Output Shape              Param #   
+=================================================================
+lambda_15 (Lambda)           (None, 160, 320, 3)       0         
+_________________________________________________________________
+cropping2d_15 (Cropping2D)   (None, 96, 320, 3)        0         
+_________________________________________________________________
+max_pooling2d_39 (MaxPooling (None, 48, 160, 3)        0         
+_________________________________________________________________
+conv2d_25 (Conv2D)           (None, 48, 160, 32)       2432      
+_________________________________________________________________
+activation_37 (Activation)   (None, 48, 160, 32)       0         
+_________________________________________________________________
+max_pooling2d_40 (MaxPooling (None, 24, 80, 32)        0         
+_________________________________________________________________
+conv2d_26 (Conv2D)           (None, 24, 80, 64)        51264     
+_________________________________________________________________
+activation_38 (Activation)   (None, 24, 80, 64)        0         
+_________________________________________________________________
+max_pooling2d_41 (MaxPooling (None, 12, 40, 64)        0         
+_________________________________________________________________
+dropout_32 (Dropout)         (None, 12, 40, 64)        0         
+_________________________________________________________________
+conv2d_27 (Conv2D)           (None, 12, 40, 128)       204928    
+_________________________________________________________________
+activation_39 (Activation)   (None, 12, 40, 128)       0         
+_________________________________________________________________
+max_pooling2d_42 (MaxPooling (None, 6, 20, 128)        0         
+_________________________________________________________________
+dropout_33 (Dropout)         (None, 6, 20, 128)        0         
+_________________________________________________________________
+flatten_13 (Flatten)         (None, 15360)             0         
+_________________________________________________________________
+dense_24 (Dense)             (None, 32)                491552    
+_________________________________________________________________
+activation_40 (Activation)   (None, 32)                0         
+_________________________________________________________________
+dropout_34 (Dropout)         (None, 32)                0         
+_________________________________________________________________
+dense_25 (Dense)             (None, 8)                 264       
+_________________________________________________________________
+activation_41 (Activation)   (None, 8)                 0         
+_________________________________________________________________
+dropout_35 (Dropout)         (None, 8)                 0         
+_________________________________________________________________
+dense_26 (Dense)             (None, 1)                 9         
+=================================================================
+Total params: 750,449
+Trainable params: 750,449
+Non-trainable params: 0
+_________________________________________________________________
+```
 
 #### 3. Creation of the Training Set & Training Process
 
