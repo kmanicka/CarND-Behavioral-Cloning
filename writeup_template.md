@@ -112,7 +112,7 @@ Used Left, Right Images and Horizontal flipping to reduce overfitting.
 ```
 
 
-### Model Architecture and Training Strategy
+### Architecture and Training Documentation
 
 #### 1. Solution Design Approach
 
