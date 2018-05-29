@@ -179,60 +179,28 @@ To start with created a workable model which could be used with drive.py. Then s
 
 Following are iterations that I used. 
 
--  Versions 1
--- Setup a basic model with  appropriate input and output dimentions which can be used with drive.py
-- Versions 2
--- Converted the model to to a Lenet Model updated for linear regression. 
-- Versions 3
--- Normalized and cropped the imges. 
-- Versions 4
--- Added Dropout in 3 layers with 0.25
-- Versions 5
--- Some Code Cleanup. 
-- Versions 6
--- Use Data Generator inspired by https://stanford.edu/~shervine/blog/keras-how-to-generate-data-on-the-fly.html  
--- The training became slower after using the data generator as the imges were being read 1 by 1 and processed. 
-- Versions 7
--- Try doing bulk read of images during Data Generator
--- Exclude the left and right images
--- Implement Validation Generator  (weights-7.hdf5)
--- Shuffle is already being done by fit_generator, so remove functionality (weights-7A.hdf5)
--- Trying the fit_generator parallel exectution to speed things up. (weights-7B.hdf5)
--- Results : 
--- Bulk read of images significantly improved the speed of training.
--- Doing shuffel on on_epoch_end improved training results. Note fit_geneator also shuffles at batch level.
--- Using Parallel Execution reduced the training time per epoc to 10s without any impact on the model / training. 
--- With weights version 7C we are able to cross the sand railing.
-- Versions 8
--- Data Augumentation do the reverse images, reverse 50% images in the batch. 
-- Version 8 A
--- LeNet Arch conv32->conv64 -> dense32 -> dense8 no dropout, 40 epocs , 32 batch, 20 workers. 
--- loss: 0.0013 - val_loss: 0.0093.. high variance. need regularization
-- Version 8 B
--- Test with smaller dense layers 
--- LeNet Arch conv32->conv64 -> dense16 -> dense4 no dropout (0.2), 40 epocs , 32 batch, 20 workers. 
--- Not Converging
-- Version 8 C
--- Same as 8A with Dropout (0.2) 
--- LeNet Arch conv32->conv64 -> dense32 -> dense8 WITH dropout (0.2), 40 epocs , 32 batch, 20 workers. 
--- Not COnverging
-- Version 8D
--- Dropout 0.25 
--- regularized but failed to cross the sandbar in sumulation. 
-- Version 8E
--- Dropout of 0.5 in 1st dense layer
--- The train and validation loss seem to converge. 
-- Version 8F
--- remove the 2nd dense layer. 
--- The train and validation loss seem to converge to 0.0106/0.0105. 
-- Version 8G
--- use keras.optimizers.Adadelta(), loss: 0.0086 - val_loss: 0.0083
--- testing in Demo, the car again crashed near the sand road area. 
+* Versions 1
+Setup a basic model with  appropriate input and output dimentions which can be used with drive.py
+* Versions 2
+Converted the model to to a Lenet Model updated for linear regression. 
+* Versions 3
+Normalized and cropped the imges. 
+* Versions 4
+Added Dropout in 3 layers with 0.25
+* Versions 5
+Some Code Cleanup. 
+* Versions 6
+Use Data Generator inspired by https://stanford.edu/~shervine/blog/keras-how-to-generate-data-on-the-fly.html .The training became slower after using the data generator as the imges were being read 1 by 1 and processed. 
+* Versions 7
+Try doing bulk read of images during Data Generator, Exclude the left and right images, Implement Validation Generator, Parallel exectution of fit generator to speed things up.
+Bulk read of images and parallel execution significantly improved the speed of training and training time per epoch got reduced to 10s without any impact on the model / training. 
+With weights version 7C we are able to cross the sand railing.
+* Versions 8
+Data Augumentation do the reverse images, reverse 50% images in the batch. 
+Tried different changes to the Model architecture. Used Adaptive Learning Optimizer.  
 - Version 9
--- Reduce 0 stearing data points
--- Train generator will have Random Transformations and generated "defined number of batches"
--- Validation Generator will generate all the validation samples in track 1
--- Result: loss: 0.0089 - val_loss: 0.0036, car able to cross the sand but got stuck in right turn. 
+Reduce 0 stearing data points, Train generator will have Random Transformations and generated "defined number of batches
+Validation Generator will generate all impages from Track 1 as validation samples
 
 #### 2. Final Model Architecture
 
