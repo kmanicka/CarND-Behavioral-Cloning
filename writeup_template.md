@@ -272,6 +272,22 @@ history_object = model.fit_generator(generator=training_generator,
                                      callbacks=[checkpoint])
 ```
 
+## Conclusion 
+
+The biggest learning from this exercise I had was the use of Data Generators. I have tried few exercises which had image data and always struggeled with managing OOMs. Data Generators via Sequence give a very good way manage large data sets. The also help modularize the data augumentation process. 
+
+Another good learning that I had was ability to process the images within a keras layar. This gives the ideas of creating a Keras Layers liberary to do all kinds of images manipulation which we are used to do via OpenCV siquentially. These layers can us the Tensor flow or Thenos Backend to manipulate a batch of images more efficiantly. 
+
+Following is a sample code for RGB to Gray Scale.  This operation can be done efficiently on Batch via the Keras Backend. 
+```
+def rgb2gray(rgb):
+    r, g, b = rgb[:,:,0], rgb[:,:,1], rgb[:,:,2]
+    gray = 0.2989 * r + 0.5870 * g + 0.1140 * b
+    return gray
+```
+
+Machine learning is a combination of some science, some intution and some art. Its best done iterativelly which requires a process to build, measure and learn quickly. 
+
 
 
 
