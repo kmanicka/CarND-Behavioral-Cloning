@@ -54,11 +54,7 @@ The final model architecture is a modification of a LeNet with addition of  prep
 
 * The model contains dropout layers in order to reduce overfitting. 
 * The distribution of images with "zero" Steering agenls was comparatively higher then other angles. So reduced samples with "zero" steering angles.
-```
-        train_nonzero = self.raw_data[self.raw_data.steering != 0]
-        train_zero = self.raw_data[self.raw_data.steering == 0].sample(frac=.1)
-        self.data = pd.concat([train_nonzero, train_zero], ignore_index=True)
-```
+
 
 #### 3. Model parameter tuning
 
@@ -71,46 +67,12 @@ model.compile(loss='mse', optimizer=Adadelta())
 
 #### 4. Appropriate training data
 
-Used Left, Right Images and Horizontal flipping to reduce overfitting. 
+Following steps were done to improve the training data. 
 
-
-```
-    def __transfomation_base(self,batch, camera_name='center', flip = False, steering_correction=1) :
-        if self.verbose == 1 :
-            print("__transfomation_base")
-        
-        filenames = batch[camera_name]
-        
-        X=None
-        if flip == False :
-            X = np.array([np.array(imread(self.base_dir + fname.strip())) for fname in filenames])
-        else :
-            X = np.array([np.flip(np.array(imread(self.base_dir + fname.strip())),1) for fname in filenames])
-        
-        y = batch["steering"] * steering_correction   
-        
-        return X,y.values 
-
-
-    def __transfomation_center(self,batch) :
-        return self.__transfomation_base(batch,'center',False,1)
-
-    def __transfomation_left(self,batch) :
-        return self.__transfomation_base(batch,'left',False,1.2)
-
-    def __transfomation_right(self,batch) :
-        return self.__transfomation_base(batch,'right',False,0.8)
-        
-    def __transfomation_flip(self,batch) :
-        return self.__transfomation_base(batch,'center',True,-1)
-
-    def __transfomation_left_flip(self,batch) :
-        return self.__transfomation_base(batch,'left',True,-1.2)
-
-    def __transfomation_right_flip(self,batch) :
-        return self.__transfomation_base(batch,'right',True,-0.8)
-```
-
+- The input images were normalized and cropped before the training 
+- Reduce the number of samples with "Zero" Steering 
+- Used Left and Right Images with corresponding changes to steering 
+- Flipped the images horizontally
 
 ### Architecture and Training Documentation
 
@@ -206,28 +168,110 @@ _________________________________________________________________
 
 #### 3. Creation of the Training Set & Training Process
 
-To capture good driving behavior, I first recorded two laps on track one using center lane driving. Here is an example image of center lane driving:
+I worked worked with the initial dataset provided with this exercies. 
 
-![alt text][image2]
+Based on the data distribution I found that the number of samples with zero steering was far higher. To reduce the imact i sub-sampled such images. 
 
-I then recorded the vehicle recovering from the left side and right sides of the road back to center so that the vehicle would learn to .... These images show what a recovery looks like starting from ... :
+```
+        train_nonzero = self.raw_data[self.raw_data.steering != 0]
+        train_zero = self.raw_data[self.raw_data.steering == 0].sample(frac=.1)
+        self.data = pd.concat([train_nonzero, train_zero], ignore_index=True)
+```
 
-![alt text][image3]
-![alt text][image4]
-![alt text][image5]
+Apart from that The data was augumented by using the left, right and flipped images. Following is the code sample. 
 
-Then I repeated this process on track two in order to get more data points.
+```
+    def __transfomation_left(self,batch) :
+        return self.__transfomation_base(batch,'left',False,1.2)
 
-To augment the data sat, I also flipped images and angles thinking that this would ... For example, here is an image that has then been flipped:
+    def __transfomation_right(self,batch) :
+        return self.__transfomation_base(batch,'right',False,0.8)
+        
+    def __transfomation_flip(self,batch) :
+        return self.__transfomation_base(batch,'center',True,-1)
 
-![alt text][image6]
-![alt text][image7]
+    def __transfomation_left_flip(self,batch) :
+        return self.__transfomation_base(batch,'left',True,-1.2)
 
-Etc ....
+    def __transfomation_right_flip(self,batch) :
+        return self.__transfomation_base(batch,'right',True,-0.8)
+```
 
-After the collection process, I had X number of data points. I then preprocessed this data by ...
+Based on these changes I had a set of around 4000 samples. 
+Loading all the samples required lot of memory so tried using data generators.  Following link suggesed an good way to implement the same by extending keras.utils.Sequence. https://stanford.edu/~shervine/blog/keras-how-to-generate-data-on-the-fly.html 
+
+Following code shows the key methods. 
+```
+
+class TrainingDataGenerator(Sequence):
+    
+    # initilze the class. 
+    def __init__(self,base_dir) :
+        self.base_dir = base_dir
+        # load and prepare data  
+        ....
+        ....
+    
+    ## called by trainer after the epoch is completed 
+    ## this was used to shuffel the data after each epoch. 
+    def on_epoch_end(self):
+        self.__prepare_data__()
+    
+    ## Called by trainer to get the size of the data set. 
+    def __len__(self):
+        return self.batches_per_epoch
+
+    ## Called by Trainer to get a batch, 
+    def __getitem__(self, index_ignore):
+        return self.__get_random_transformed_batch__()
+    
+```
+
+Using this approach created a Training and Validation Data Generator.
+Training data shuffled and applied random transformation on the batch. 
+The Validation data Generator returned the data as is. 
+
+```
+class ValidationDataGenerator(Sequence):
+    
+    def __init__(self, base_dir, batch_size,verbose=0) :
+        self.verbose = verbose
+        self.base_dir = base_dir
+        self.batch_size = batch_size
+        self.data = pd.read_csv(self.base_dir + 'driving_log.csv', sep=',')
+        
+    def __len__(self):
+        return int(np.ceil(len(self.data) / float(self.batch_size)))
+    
+    def __getitem__(self, index):
+        low = index * self.batch_size
+        top = low + self.batch_size
+        
+        batch = self.data[low:top]
+        
+        filenames = batch["center"]
+        X = np.array([np.array(imread(self.base_dir + fname.strip())) for fname in filenames])
+        y = batch["steering"]
+        
+        return X,y.values
+```
+
+I was able to further speed up the training by using use_multiprocessing and 10 workers in model.fit_generator(). 
 
 
-I finally randomly shuffled the data set and put Y% of the data into a validation set. 
+```
+training_generator = TrainingDataGenerator('data/',batch_size=batch_size,batches_per_epoch=batches_per_epoch)
+validation_generator = ValidationDataGenerator('data/',batch_size=batch_size)
 
-I used this training data for training the model. The validation set helped determine if the model was over or under fitting. The ideal number of epochs was Z as evidenced by ... I used an adam optimizer so that manually training the learning rate wasn't necessary.
+history_object = model.fit_generator(generator=training_generator,
+                                     validation_data=validation_generator,
+                                     epochs=epochs,
+                                     verbose=1,
+                                     use_multiprocessing=True, #<<<<
+                                     workers=10, #<<<<
+                                     callbacks=[checkpoint])
+```
+
+
+
+
